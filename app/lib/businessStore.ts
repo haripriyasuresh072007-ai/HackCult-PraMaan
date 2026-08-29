@@ -32,6 +32,11 @@ export type Certificate = {
   status: "Valid" | "Expired";
 };
 
+
+/* =========================================================
+   DEFAULT DEMO INSTRUMENTS
+========================================================= */
+
 const DEFAULT_INSTRUMENTS: Instrument[] = [
   {
     id: "LM-00124",
@@ -46,6 +51,7 @@ const DEFAULT_INSTRUMENTS: Instrument[] = [
     validUntil: "27 Aug 2027",
     status: "Verified",
   },
+
   {
     id: "LM-00118",
     name: "Platform Weighing Machine",
@@ -59,6 +65,7 @@ const DEFAULT_INSTRUMENTS: Instrument[] = [
     validUntil: "14 Jul 2027",
     status: "Verified",
   },
+
   {
     id: "LM-00131",
     name: "Retail Counter Scale",
@@ -74,6 +81,11 @@ const DEFAULT_INSTRUMENTS: Instrument[] = [
   },
 ];
 
+
+/* =========================================================
+   DEFAULT DEMO APPLICATIONS
+========================================================= */
+
 const DEFAULT_APPLICATIONS: Application[] = [
   {
     id: "APP-2026-0142",
@@ -84,6 +96,7 @@ const DEFAULT_APPLICATIONS: Application[] = [
     submitted: "27 Aug 2026",
     status: "Verified",
   },
+
   {
     id: "APP-2026-0138",
     instrumentId: "LM-00118",
@@ -94,6 +107,11 @@ const DEFAULT_APPLICATIONS: Application[] = [
     status: "Under Review",
   },
 ];
+
+
+/* =========================================================
+   DEFAULT DEMO CERTIFICATES
+========================================================= */
 
 const DEFAULT_CERTIFICATES: Certificate[] = [
   {
@@ -107,7 +125,13 @@ const DEFAULT_CERTIFICATES: Certificate[] = [
   },
 ];
 
+
+/* =========================================================
+   LOCAL STORAGE HELPERS
+========================================================= */
+
 function readData<T>(key: string, fallback: T): T {
+
   if (typeof window === "undefined") {
     return fallback;
   }
@@ -115,34 +139,70 @@ function readData<T>(key: string, fallback: T): T {
   const saved = localStorage.getItem(key);
 
   if (!saved) {
-    localStorage.setItem(key, JSON.stringify(fallback));
+
+    localStorage.setItem(
+      key,
+      JSON.stringify(fallback)
+    );
+
     return fallback;
   }
 
   try {
+
     return JSON.parse(saved);
+
   } catch {
-    localStorage.setItem(key, JSON.stringify(fallback));
+
+    localStorage.setItem(
+      key,
+      JSON.stringify(fallback)
+    );
+
     return fallback;
   }
 }
 
-function saveData<T>(key: string, data: T) {
-  localStorage.setItem(key, JSON.stringify(data));
+
+function saveData<T>(
+  key: string,
+  data: T
+) {
+
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.setItem(
+    key,
+    JSON.stringify(data)
+  );
 }
 
 
 /* =========================================================
-   INSTRUMENTS
+   INSTRUMENT FUNCTIONS
 ========================================================= */
 
 export function getInstruments(): Instrument[] {
-  return readData("lm_instruments", DEFAULT_INSTRUMENTS);
+
+  return readData(
+    "lm_instruments",
+    DEFAULT_INSTRUMENTS
+  );
 }
 
-export function saveInstruments(instruments: Instrument[]) {
-  saveData("lm_instruments", instruments);
+
+export function saveInstruments(
+  instruments: Instrument[]
+) {
+
+  saveData(
+    "lm_instruments",
+    instruments
+  );
 }
+
 
 export function addInstrument(
   instrument: Omit<
@@ -150,84 +210,179 @@ export function addInstrument(
     "id" | "lastVerified" | "validUntil" | "status"
   >
 ) {
+
   const instruments = getInstruments();
 
   const newInstrument: Instrument = {
+
     ...instrument,
+
     id: `LM-${String(Date.now()).slice(-5)}`,
+
     lastVerified: "Not verified yet",
+
     validUntil: "Pending verification",
+
     status: "Pending",
+
   };
 
-  saveInstruments([...instruments, newInstrument]);
+  saveInstruments([
+    ...instruments,
+    newInstrument,
+  ]);
 
   return newInstrument;
 }
 
 
 /* =========================================================
-   APPLICATIONS
+   APPLICATION FUNCTIONS
 ========================================================= */
 
 export function getApplications(): Application[] {
-  return readData("lm_applications", DEFAULT_APPLICATIONS);
+
+  return readData(
+    "lm_applications",
+    DEFAULT_APPLICATIONS
+  );
 }
 
-export function saveApplications(applications: Application[]) {
-  saveData("lm_applications", applications);
+
+export function saveApplications(
+  applications: Application[]
+) {
+
+  saveData(
+    "lm_applications",
+    applications
+  );
 }
+
 
 export function addApplication(
-  application: Omit<Application, "id" | "submitted" | "status">
+  application: Omit<
+    Application,
+    "id" | "submitted" | "status"
+  >
 ) {
-  const applications = getApplications();
+
+  const applications =
+    getApplications();
 
   const newApplication: Application = {
+
     ...application,
+
     id: `APP-2026-${String(Date.now()).slice(-4)}`,
-    submitted: new Date().toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }),
+
+    submitted:
+      new Date().toLocaleDateString(
+        "en-GB",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }
+      ),
+
     status: "Pending",
+
   };
 
-  saveApplications([...applications, newApplication]);
+  saveApplications([
+    ...applications,
+    newApplication,
+  ]);
 
   return newApplication;
 }
 
 
 /* =========================================================
-   CERTIFICATES
+   CERTIFICATE FUNCTIONS
 ========================================================= */
 
 export function getCertificates(): Certificate[] {
-  return readData("lm_certificates", DEFAULT_CERTIFICATES);
+
+  return readData(
+    "lm_certificates",
+    DEFAULT_CERTIFICATES
+  );
 }
 
-export function saveCertificates(certificates: Certificate[]) {
-  saveData("lm_certificates", certificates);
+
+export function saveCertificates(
+  certificates: Certificate[]
+) {
+
+  saveData(
+    "lm_certificates",
+    certificates
+  );
 }
 
 
 /* =========================================================
-   FIND CERTIFICATE
-   Used by the public QR verification page
+   DEMO DATA LOADER
 ========================================================= */
 
-export function getCertificateByNumber(
-  certificateNumber: string
-): Certificate | null {
-  const certificates = getCertificates();
+export function loadDemoData() {
 
-  const decodedNumber = decodeURIComponent(certificateNumber);
+  if (typeof window === "undefined") {
+    return;
+  }
 
-  const certificate = certificates.find(
-    (item) => item.certificateNumber === decodedNumber
+  const instruments =
+    localStorage.getItem("lm_instruments");
+
+  const applications =
+    localStorage.getItem("lm_applications");
+
+  const certificates =
+    localStorage.getItem("lm_certificates");
+
+
+  /*
+   Only create demo data when the browser
+   has never created the application's data.
+  */
+
+  if (!instruments) {
+
+    localStorage.setItem(
+      "lm_instruments",
+      JSON.stringify(DEFAULT_INSTRUMENTS)
+    );
+
+  }
+
+
+  if (!applications) {
+
+    localStorage.setItem(
+      "lm_applications",
+      JSON.stringify(DEFAULT_APPLICATIONS)
+    );
+
+  }
+
+
+  if (!certificates) {
+
+    localStorage.setItem(
+      "lm_certificates",
+      JSON.stringify(DEFAULT_CERTIFICATES)
+    );
+
+  }
+
+
+  /*
+   Tell dashboards that the data has changed.
+  */
+
+  window.dispatchEvent(
+    new Event("lm-data-updated")
   );
-
-  return certificate ?? null;
 }
