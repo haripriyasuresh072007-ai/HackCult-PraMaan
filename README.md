@@ -17,6 +17,9 @@ Try the current prototype:https://legal-metrology-eight.vercel.app/
 
 Source code: https://github.com/haripriyasuresh072007-ai/HackCult-PraMaan
 
+## Prototype Dashboard
+<img width="731" height="347" alt="image" src="https://github.com/user-attachments/assets/7c8f9872-a74d-498d-a719-c0fb5943e073" />
+
 
 ## 📌 Prototype Status:40 Percent of the prototype is completed
 
