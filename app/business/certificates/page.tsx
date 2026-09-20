@@ -266,7 +266,7 @@ function CertificateModal({
   useEffect(() => {
 
     const verificationUrl =
-  `http://192.168.1.7:3000/verify?id=${encodeURIComponent(
+  `https://legal-metrology-eight.vercel.app/verify?id=${encodeURIComponent(
     certificate.id
   )}`;
 
