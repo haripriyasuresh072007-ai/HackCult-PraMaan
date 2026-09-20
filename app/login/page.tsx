@@ -2,85 +2,82 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Role = "business" | "officer" | "admin";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [role, setRole] = useState<Role>("business");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setError("");
     setLoading(true);
 
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          role,
-        }),
-      });
+    // ==========================================
+    // HACKATHON DEMO LOGIN
+    // ==========================================
+    // No Prisma / SQLite dependency.
+    // This makes the public Vercel demo reliable.
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        setError(data.message || "Login failed.");
-        setLoading(false);
-        return;
-      }
-
-      // Save user session
-      localStorage.setItem(
-        "legal-metrology-session",
-        JSON.stringify(data.user)
-      );
-
-      // Get actual role returned by database
-      const userRole = String(data.user.role || "")
-        .trim()
-        .toLowerCase();
-
-      // HARD REDIRECT
-      // This avoids any client-side router/navigation issue.
-      if (userRole === "business") {
-        window.location.href = "/business";
-        return;
-      }
-
-      if (userRole === "officer") {
-        window.location.href = "/officer";
-        return;
-      }
-
-      if (userRole === "admin") {
-        window.location.href = "/admin";
-        return;
-      }
-
-      setError("Unknown user role.");
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter your email and password.");
       setLoading(false);
-    } catch (error) {
-      console.error("LOGIN ERROR:", error);
-      setError("Unable to connect to the server.");
-      setLoading(false);
+      return;
+    }
+
+    // Create demo session
+    const demoUser = {
+      id: `demo-${role}`,
+      name:
+        role === "business"
+          ? "Demo Business"
+          : role === "officer"
+            ? "Demo Legal Metrology Officer"
+            : "Demo Administrator",
+      email: email.trim(),
+      role,
+      businessId: role === "business" ? "demo-business" : null,
+    };
+
+    localStorage.setItem(
+      "legal-metrology-session",
+      JSON.stringify(demoUser)
+    );
+
+    // Redirect according to selected role
+    if (role === "business") {
+      window.location.href = "/business";
+      return;
+    }
+
+    if (role === "officer") {
+      window.location.href = "/officer";
+      return;
+    }
+
+    if (role === "admin") {
+      window.location.href = "/admin";
+      return;
     }
   };
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050816] text-white">
-      {/* BACKGROUND */}
+
+      {/* ==========================================
+          BACKGROUND
+      ========================================== */}
+
       <div className="pointer-events-none absolute inset-0">
+
         <div className="absolute left-[15%] top-[15%] h-[420px] w-[420px] rounded-full bg-blue-600/10 blur-[130px]" />
 
         <div className="absolute bottom-[5%] right-[10%] h-[380px] w-[380px] rounded-full bg-cyan-400/10 blur-[130px]" />
@@ -93,16 +90,23 @@ export default function LoginPage() {
             backgroundSize: "60px 60px",
           }}
         />
+
       </div>
 
-      {/* NAVBAR */}
+      {/* ==========================================
+          NAVBAR
+      ========================================== */}
+
       <nav className="relative z-20 flex items-center justify-between px-6 py-5 lg:px-10">
+
         <Link href="/" className="flex items-center gap-3">
+
           <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-blue-400/30 bg-blue-400/10 text-xl">
             ⚖
           </div>
 
           <div>
+
             <p className="text-sm font-bold tracking-[0.28em] text-white">
               LEGAL METROLOGY
             </p>
@@ -110,7 +114,9 @@ export default function LoginPage() {
             <p className="mt-0.5 text-[10px] tracking-[0.12em] text-slate-500">
               DIGITAL VERIFICATION INFRASTRUCTURE
             </p>
+
           </div>
+
         </Link>
 
         <Link
@@ -119,16 +125,29 @@ export default function LoginPage() {
         >
           ← Back to portal
         </Link>
+
       </nav>
 
-      {/* MAIN */}
+      {/* ==========================================
+          MAIN
+      ========================================== */}
+
       <div className="relative z-10 flex min-h-[calc(100vh-90px)] items-center justify-center px-5 py-10">
+
         <div className="w-full max-w-[1050px]">
-          {/* HEADING */}
+
+          {/* ==========================================
+              HEADING
+          ========================================== */}
+
           <div className="mb-8 text-center">
+
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+
               Secure Government Portal
+
             </div>
 
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -139,13 +158,23 @@ export default function LoginPage() {
               Access digital verification, inspection records and
               certification services under the Legal Metrology framework.
             </p>
+
           </div>
 
-          {/* LOGIN CARD */}
+          {/* ==========================================
+              LOGIN CARD
+          ========================================== */}
+
           <div className="mx-auto overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035] shadow-[0_40px_120px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+
             <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-              {/* ROLE SELECTION */}
+
+              {/* ==========================================
+                  ROLE SELECTION
+              ========================================== */}
+
               <div className="border-b border-white/10 p-7 lg:border-b-0 lg:border-r lg:p-9">
+
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
                   Step 01
                 </p>
@@ -160,7 +189,9 @@ export default function LoginPage() {
                 </p>
 
                 <div className="mt-7 space-y-3">
+
                   {/* BUSINESS */}
+
                   <button
                     type="button"
                     onClick={() => {
@@ -173,7 +204,9 @@ export default function LoginPage() {
                         : "border-white/10 bg-white/[0.02] hover:border-white/20"
                     }`}
                   >
+
                     <div className="flex items-center gap-4">
+
                       <div
                         className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg ${
                           role === "business"
@@ -185,19 +218,29 @@ export default function LoginPage() {
                       </div>
 
                       <div className="flex-1">
-                        <p className="font-semibold">Business</p>
+
+                        <p className="font-semibold">
+                          Business
+                        </p>
+
                         <p className="mt-1 text-xs text-slate-500">
                           Submit and track instrument verification
                         </p>
+
                       </div>
 
                       {role === "business" && (
-                        <span className="text-blue-300">✓</span>
+                        <span className="text-blue-300">
+                          ✓
+                        </span>
                       )}
+
                     </div>
+
                   </button>
 
                   {/* OFFICER */}
+
                   <button
                     type="button"
                     onClick={() => {
@@ -210,7 +253,9 @@ export default function LoginPage() {
                         : "border-white/10 bg-white/[0.02] hover:border-white/20"
                     }`}
                   >
+
                     <div className="flex items-center gap-4">
+
                       <div
                         className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg ${
                           role === "officer"
@@ -222,19 +267,29 @@ export default function LoginPage() {
                       </div>
 
                       <div className="flex-1">
-                        <p className="font-semibold">LMO Officer</p>
+
+                        <p className="font-semibold">
+                          LMO Officer
+                        </p>
+
                         <p className="mt-1 text-xs text-slate-500">
                           Inspect, verify and issue certificates
                         </p>
+
                       </div>
 
                       {role === "officer" && (
-                        <span className="text-cyan-300">✓</span>
+                        <span className="text-cyan-300">
+                          ✓
+                        </span>
                       )}
+
                     </div>
+
                   </button>
 
                   {/* ADMIN */}
+
                   <button
                     type="button"
                     onClick={() => {
@@ -247,7 +302,9 @@ export default function LoginPage() {
                         : "border-white/10 bg-white/[0.02] hover:border-white/20"
                     }`}
                   >
+
                     <div className="flex items-center gap-4">
+
                       <div
                         className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg ${
                           role === "admin"
@@ -259,25 +316,41 @@ export default function LoginPage() {
                       </div>
 
                       <div className="flex-1">
-                        <p className="font-semibold">Administrator</p>
+
+                        <p className="font-semibold">
+                          Administrator
+                        </p>
+
                         <p className="mt-1 text-xs text-slate-500">
                           Monitor operations and manage users
                         </p>
+
                       </div>
 
                       {role === "admin" && (
-                        <span className="text-violet-300">✓</span>
+                        <span className="text-violet-300">
+                          ✓
+                        </span>
                       )}
+
                     </div>
+
                   </button>
+
                 </div>
 
                 {/* SECURITY */}
+
                 <div className="mt-7 rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.03] p-4">
+
                   <div className="flex gap-3">
-                    <span className="mt-0.5 text-emerald-300">✓</span>
+
+                    <span className="mt-0.5 text-emerald-300">
+                      ✓
+                    </span>
 
                     <div>
+
                       <p className="text-xs font-semibold text-emerald-300">
                         Secure access
                       </p>
@@ -286,14 +359,23 @@ export default function LoginPage() {
                         Role-based access ensures users only see the
                         information and actions relevant to them.
                       </p>
+
                     </div>
+
                   </div>
+
                 </div>
+
               </div>
 
-              {/* LOGIN FORM */}
+              {/* ==========================================
+                  LOGIN FORM
+              ========================================== */}
+
               <div className="p-7 lg:p-9">
+
                 <div className="mb-8">
+
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
                     Step 02
                   </p>
@@ -320,11 +402,18 @@ export default function LoginPage() {
                           : "Administrator"}
                     </span>
                   </p>
+
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-5">
+                <form
+                  onSubmit={handleLogin}
+                  className="space-y-5"
+                >
+
                   {/* EMAIL */}
+
                   <div>
+
                     <label className="mb-2 block text-xs font-medium text-slate-400">
                       Official email address
                     </label>
@@ -340,10 +429,13 @@ export default function LoginPage() {
                       required
                       className="h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none transition placeholder:text-slate-700 focus:border-blue-400/50"
                     />
+
                   </div>
 
                   {/* PASSWORD */}
+
                   <div>
+
                     <label className="mb-2 block text-xs font-medium text-slate-400">
                       Password
                     </label>
@@ -359,9 +451,11 @@ export default function LoginPage() {
                       required
                       className="h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none transition placeholder:text-slate-700 focus:border-blue-400/50"
                     />
+
                   </div>
 
                   {/* ERROR */}
+
                   {error && (
                     <div className="rounded-xl border border-red-400/20 bg-red-400/5 px-4 py-3 text-xs text-red-300">
                       {error}
@@ -369,7 +463,9 @@ export default function LoginPage() {
                   )}
 
                   {/* REMEMBER */}
+
                   <label className="flex cursor-pointer items-center gap-3">
+
                     <input
                       type="checkbox"
                       className="h-4 w-4 rounded border-white/10 bg-black/20"
@@ -378,9 +474,11 @@ export default function LoginPage() {
                     <span className="text-xs text-slate-500">
                       Keep me signed in on this device
                     </span>
+
                   </label>
 
-                  {/* LOGIN */}
+                  {/* LOGIN BUTTON */}
+
                   <button
                     type="submit"
                     disabled={loading}
@@ -392,47 +490,84 @@ export default function LoginPage() {
                           : "bg-violet-600 hover:bg-violet-500"
                     }`}
                   >
+
                     {loading ? (
-                      "Signing in..."
+                      "Opening portal..."
                     ) : (
                       <>
                         Enter Verification Portal
-                        <span className="ml-2">→</span>
+                        <span className="ml-2">
+                          →
+                        </span>
                       </>
                     )}
+
                   </button>
+
                 </form>
 
-                {/* DEMO */}
+                {/* DEMO MODE */}
+
                 <div className="mt-8 rounded-2xl border border-blue-400/10 bg-blue-400/[0.035] p-4">
+
                   <p className="text-xs font-semibold text-blue-200">
                     Hackathon Demo Mode
                   </p>
 
                   <p className="mt-1 text-[10px] leading-5 text-slate-500">
-                    Authentication is connected to the local Prisma database.
-                    Select the appropriate role before signing in.
+                    Demo authentication is enabled for the prototype.
+                    Select a role and enter any valid email and password
+                    to continue.
                   </p>
+
                 </div>
 
                 {/* FOOTER */}
+
                 <div className="mt-7 flex items-center justify-between text-[10px] text-slate-600">
-                  <span>Legal Metrology Act, 2009</span>
-                  <span>Secure Digital Infrastructure</span>
+
+                  <span>
+                    Legal Metrology Act, 2009
+                  </span>
+
+                  <span>
+                    Secure Digital Infrastructure
+                  </span>
+
                 </div>
+
               </div>
+
             </div>
+
           </div>
 
           {/* TRUST */}
+
           <div className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[10px] text-slate-600">
-            <span>✓ Role-based access</span>
-            <span>✓ Digital certificates</span>
-            <span>✓ QR authentication</span>
-            <span>✓ Verification tracking</span>
+
+            <span>
+              ✓ Role-based access
+            </span>
+
+            <span>
+              ✓ Digital certificates
+            </span>
+
+            <span>
+              ✓ QR authentication
+            </span>
+
+            <span>
+              ✓ Verification tracking
+            </span>
+
           </div>
+
         </div>
+
       </div>
+
     </main>
   );
 }
