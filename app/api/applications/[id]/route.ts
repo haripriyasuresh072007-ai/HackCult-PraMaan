@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/app/lib/prisma";
 
 /* =========================================================
@@ -17,8 +18,7 @@ export async function PATCH(
 
     const body = await request.json();
 
-    const status = String(body.status ?? "")
-      .trim();
+    const status = String(body.status ?? "").trim();
 
     if (!id) {
       return NextResponse.json(
@@ -30,15 +30,11 @@ export async function PATCH(
       );
     }
 
-    if (
-      status !== "Verified" &&
-      status !== "Rejected"
-    ) {
+    if (status !== "Verified" && status !== "Rejected") {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Status must be Verified or Rejected.",
+          message: "Status must be Verified or Rejected.",
         },
         { status: 400 }
       );
@@ -133,7 +129,7 @@ export async function PATCH(
     ===================================================== */
 
     const result = await prisma.$transaction(
-      async (tx) => {
+      async (tx: Prisma.TransactionClient) => {
         const certificate =
           await tx.certificate.create({
             data: {
@@ -224,8 +220,7 @@ export async function PATCH(
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Unable to process application.",
+        message: "Unable to process application.",
       },
       { status: 500 }
     );

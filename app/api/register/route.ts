@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/app/lib/prisma";
 import crypto from "crypto";
 
@@ -97,7 +98,8 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "This business registration number is already registered.",
+          message:
+            "This business registration number is already registered.",
         },
         { status: 409 }
       );
@@ -112,38 +114,40 @@ export async function POST(request: Request) {
 
     const hashedPassword = hashPassword(password);
 
-    const result = await prisma.$transaction(async (tx) => {
-      const business = await tx.business.create({
-        data: {
-          id: businessId,
-          businessName: businessName.trim(),
-          registrationNo: registrationNo.trim(),
-          ownerName: ownerName.trim(),
-          email: normalizedEmail,
-          phone: phone.trim(),
-          address: address.trim(),
-          city: city.trim(),
-          state: state.trim(),
-          pincode: pincode.trim(),
-        },
-      });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const business = await tx.business.create({
+          data: {
+            id: businessId,
+            businessName: businessName.trim(),
+            registrationNo: registrationNo.trim(),
+            ownerName: ownerName.trim(),
+            email: normalizedEmail,
+            phone: phone.trim(),
+            address: address.trim(),
+            city: city.trim(),
+            state: state.trim(),
+            pincode: pincode.trim(),
+          },
+        });
 
-      const user = await tx.user.create({
-        data: {
-          id: userId,
-          name: ownerName.trim(),
-          email: normalizedEmail,
-          password: hashedPassword,
-          role: "business",
-          businessId: business.id,
-        },
-      });
+        const user = await tx.user.create({
+          data: {
+            id: userId,
+            name: ownerName.trim(),
+            email: normalizedEmail,
+            password: hashedPassword,
+            role: "business",
+            businessId: business.id,
+          },
+        });
 
-      return {
-        business,
-        user,
-      };
-    });
+        return {
+          business,
+          user,
+        };
+      }
+    );
 
     return NextResponse.json(
       {
