@@ -103,14 +103,14 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("CREATE INSTRUMENT ERROR:", error);
+  console.error("CREATE INSTRUMENT ERROR:", error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Unable to register instrument.",
-      },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(
+    {
+      error: "Unable to register instrument.",
+      details: error instanceof Error ? error.message : String(error),
+    },
+    { status: 500 }
+  );
+}
 }
