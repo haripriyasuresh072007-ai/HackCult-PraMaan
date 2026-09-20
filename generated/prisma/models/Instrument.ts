@@ -1347,6 +1347,7 @@ export type InstrumentCreateManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * The data used to create many Instruments.
    */
   data: Prisma.InstrumentCreateManyInput | Prisma.InstrumentCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1365,6 +1366,7 @@ export type InstrumentCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    * The data used to create many Instruments.
    */
   data: Prisma.InstrumentCreateManyInput | Prisma.InstrumentCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**

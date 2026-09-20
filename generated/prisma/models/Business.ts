@@ -1323,6 +1323,7 @@ export type BusinessCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * The data used to create many Businesses.
    */
   data: Prisma.BusinessCreateManyInput | Prisma.BusinessCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1341,6 +1342,7 @@ export type BusinessCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    * The data used to create many Businesses.
    */
   data: Prisma.BusinessCreateManyInput | Prisma.BusinessCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**

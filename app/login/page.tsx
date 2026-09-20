@@ -10,71 +10,36 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const handleDemoLogin = () => {
+    const session = {
+      id: `demo-${role}`,
+      name:
+        role === "business"
+          ? "Demo Business"
+          : role === "officer"
+            ? "Demo Legal Metrology Officer"
+            : "Demo Administrator",
+      email: email.trim() || "demo@pramaan.gov.in",
+      role,
+      businessId: role === "business" ? "demo-business" : null,
+    };
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    localStorage.setItem(
+      "legal-metrology-session",
+      JSON.stringify(session)
+    );
 
-    setError("");
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          role,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        setError(data.message || "Login failed.");
-        setLoading(false);
-        return;
-      }
-
-      // Save user session
-      localStorage.setItem(
-        "legal-metrology-session",
-        JSON.stringify(data.user)
-      );
-
-      // Get actual role returned by database
-      const userRole = String(data.user.role || "")
-        .trim()
-        .toLowerCase();
-
-      // HARD REDIRECT
-      // This avoids any client-side router/navigation issue.
-      if (userRole === "business") {
-        window.location.href = "/business";
-        return;
-      }
-
-      if (userRole === "officer") {
-        window.location.href = "/officer";
-        return;
-      }
-
-      if (userRole === "admin") {
-        window.location.href = "/admin";
-        return;
-      }
-
-      setError("Unknown user role.");
-      setLoading(false);
-    } catch (error) {
-      console.error("LOGIN ERROR:", error);
-      setError("Unable to connect to the server.");
-      setLoading(false);
+    if (role === "business") {
+      window.location.href = "/business";
+      return;
     }
+
+    if (role === "officer") {
+      window.location.href = "/officer";
+      return;
+    }
+
+    window.location.href = "/admin";
   };
 
   return (
@@ -163,10 +128,7 @@ export default function LoginPage() {
                   {/* BUSINESS */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setRole("business");
-                      setError("");
-                    }}
+                    onClick={() => setRole("business")}
                     className={`group w-full rounded-2xl border p-4 text-left transition-all ${
                       role === "business"
                         ? "border-blue-400/40 bg-blue-400/10"
@@ -200,10 +162,7 @@ export default function LoginPage() {
                   {/* OFFICER */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setRole("officer");
-                      setError("");
-                    }}
+                    onClick={() => setRole("officer")}
                     className={`group w-full rounded-2xl border p-4 text-left transition-all ${
                       role === "officer"
                         ? "border-cyan-400/40 bg-cyan-400/10"
@@ -237,10 +196,7 @@ export default function LoginPage() {
                   {/* ADMIN */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setRole("admin");
-                      setError("");
-                    }}
+                    onClick={() => setRole("admin")}
                     className={`group w-full rounded-2xl border p-4 text-left transition-all ${
                       role === "admin"
                         ? "border-violet-400/40 bg-violet-400/10"
@@ -322,7 +278,7 @@ export default function LoginPage() {
                   </p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-5">
+                <div className="space-y-5">
                   {/* EMAIL */}
                   <div>
                     <label className="mb-2 block text-xs font-medium text-slate-400">
@@ -332,12 +288,8 @@ export default function LoginPage() {
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setError("");
-                      }}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@organisation.gov.in"
-                      required
                       className="h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none transition placeholder:text-slate-700 focus:border-blue-400/50"
                     />
                   </div>
@@ -351,22 +303,11 @@ export default function LoginPage() {
                     <input
                       type="password"
                       value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setError("");
-                      }}
+                      onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      required
                       className="h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none transition placeholder:text-slate-700 focus:border-blue-400/50"
                     />
                   </div>
-
-                  {/* ERROR */}
-                  {error && (
-                    <div className="rounded-xl border border-red-400/20 bg-red-400/5 px-4 py-3 text-xs text-red-300">
-                      {error}
-                    </div>
-                  )}
 
                   {/* REMEMBER */}
                   <label className="flex cursor-pointer items-center gap-3">
@@ -382,9 +323,9 @@ export default function LoginPage() {
 
                   {/* LOGIN */}
                   <button
-                    type="submit"
-                    disabled={loading}
-                    className={`flex h-13 w-full items-center justify-center rounded-xl px-5 py-3.5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                    type="button"
+                    onClick={handleDemoLogin}
+                    className={`flex h-13 w-full items-center justify-center rounded-xl px-5 py-3.5 text-sm font-semibold text-white transition ${
                       role === "business"
                         ? "bg-blue-600 hover:bg-blue-500"
                         : role === "officer"
@@ -392,16 +333,10 @@ export default function LoginPage() {
                           : "bg-violet-600 hover:bg-violet-500"
                     }`}
                   >
-                    {loading ? (
-                      "Signing in..."
-                    ) : (
-                      <>
-                        Enter Verification Portal
-                        <span className="ml-2">→</span>
-                      </>
-                    )}
+                    Enter Verification Portal
+                    <span className="ml-2">→</span>
                   </button>
-                </form>
+                </div>
 
                 {/* DEMO */}
                 <div className="mt-8 rounded-2xl border border-blue-400/10 bg-blue-400/[0.035] p-4">
@@ -410,8 +345,8 @@ export default function LoginPage() {
                   </p>
 
                   <p className="mt-1 text-[10px] leading-5 text-slate-500">
-                    Authentication is connected to the local Prisma database.
-                    Select the appropriate role before signing in.
+                    Demo authentication allows judges to enter the appropriate
+                    role and access the corresponding verification dashboard.
                   </p>
                 </div>
 

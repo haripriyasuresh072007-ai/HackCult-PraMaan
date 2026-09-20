@@ -504,6 +504,7 @@ export type ApplicationCreateOrConnectWithoutInstrumentRefInput = {
 
 export type ApplicationCreateManyInstrumentRefInputEnvelope = {
   data: Prisma.ApplicationCreateManyInstrumentRefInput | Prisma.ApplicationCreateManyInstrumentRefInput[]
+  skipDuplicates?: boolean
 }
 
 export type ApplicationUpsertWithWhereUniqueWithoutInstrumentRefInput = {
@@ -1392,6 +1393,7 @@ export type ApplicationCreateManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * The data used to create many Applications.
    */
   data: Prisma.ApplicationCreateManyInput | Prisma.ApplicationCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1410,6 +1412,7 @@ export type ApplicationCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    * The data used to create many Applications.
    */
   data: Prisma.ApplicationCreateManyInput | Prisma.ApplicationCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */
