@@ -2,22 +2,72 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Application,
-  getApplications,
-} from "@/app/lib/businessStore";
+
+type Application = {
+  id: string;
+  business: string;
+  instrument: string;
+  instrumentId: string | null;
+  type: string;
+  location: string;
+  submitted: string;
+  priority: string;
+  status: string;
+
+  instrumentRef?: {
+    id: string;
+    name: string;
+    manufacturer: string;
+    model: string;
+    serialNumber: string;
+    location: string;
+    type: string;
+    capacity: string;
+  } | null;
+};
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  /* =========================================================
+     LOAD APPLICATIONS FROM DATABASE
+  ========================================================= */
 
   useEffect(() => {
-    setApplications(getApplications());
+    loadApplications();
   }, []);
+
+  const loadApplications = async () => {
+    try {
+      const response = await fetch("/api/applications");
+
+      const data = await response.json();
+
+      if (data.success) {
+        setApplications(data.applications);
+      } else {
+        console.error(
+          "Failed to load applications:",
+          data.message
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load applications:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#030712] text-white">
 
-      {/* BACKGROUND */}
+      {/* =====================================================
+          BACKGROUND
+      ===================================================== */}
 
       <div className="fixed inset-0 -z-0 overflow-hidden">
 
@@ -36,12 +86,16 @@ export default function ApplicationsPage() {
 
       </div>
 
-
-      {/* NAVBAR */}
+      {/* =====================================================
+          NAVBAR
+      ===================================================== */}
 
       <nav className="relative z-10 flex items-center justify-between border-b border-white/10 bg-[#030712]/80 px-6 py-4 backdrop-blur-xl lg:px-10">
 
-        <Link href="/business" className="flex items-center gap-3">
+        <Link
+          href="/business"
+          className="flex items-center gap-3"
+        >
 
           <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-blue-400/30 bg-blue-500/10 text-xl">
             ⚖
@@ -61,7 +115,6 @@ export default function ApplicationsPage() {
 
         </Link>
 
-
         <Link
           href="/business"
           className="rounded-xl border border-white/10 px-4 py-2 text-xs text-slate-400 transition hover:text-white"
@@ -71,10 +124,15 @@ export default function ApplicationsPage() {
 
       </nav>
 
-
-      {/* CONTENT */}
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
 
       <section className="relative z-10 mx-auto max-w-7xl px-6 py-10 lg:px-10">
+
+        {/* =================================================
+            PAGE HEADER
+        ================================================= */}
 
         <div className="mb-8">
 
@@ -87,96 +145,124 @@ export default function ApplicationsPage() {
           </h1>
 
           <p className="mt-3 text-slate-500">
-            Track verification and re-verification requests submitted for
-            your instruments.
+            Track verification and re-verification requests
+            submitted for your instruments.
           </p>
 
         </div>
 
+        {/* =================================================
+            LOADING
+        ================================================= */}
 
-        {/* SUMMARY */}
+        {loading ? (
 
-        <div className="mb-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-16 text-center">
 
-          <SummaryCard
-            label="Total Applications"
-            value={String(applications.length)}
-          />
+            <div className="text-sm text-slate-500">
+              Loading applications...
+            </div>
 
-          <SummaryCard
-            label="Pending"
-            value={String(
-              applications.filter(
-                (application) => application.status === "Pending"
-              ).length
-            )}
-          />
+          </div>
 
-          <SummaryCard
-            label="Under Review"
-            value={String(
-              applications.filter(
-                (application) => application.status === "Under Review"
-              ).length
-            )}
-          />
+        ) : (
 
-          <SummaryCard
-            label="Verified"
-            value={String(
-              applications.filter(
-                (application) => application.status === "Verified"
-              ).length
-            )}
-          />
+          <>
 
-        </div>
+            {/* =================================================
+                SUMMARY
+            ================================================= */}
 
+            <div className="mb-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-        {/* APPLICATION LIST */}
+              <SummaryCard
+                label="Total Applications"
+                value={String(applications.length)}
+              />
 
-        <div className="space-y-4">
+              <SummaryCard
+                label="Pending"
+                value={String(
+                  applications.filter(
+                    (application) =>
+                      application.status === "Pending"
+                  ).length
+                )}
+              />
 
-          {applications.length === 0 ? (
+              <SummaryCard
+                label="Under Review"
+                value={String(
+                  applications.filter(
+                    (application) =>
+                      application.status === "Under Review"
+                  ).length
+                )}
+              />
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-16 text-center">
-
-              <div className="text-4xl">
-                ◫
-              </div>
-
-              <h2 className="mt-4 text-xl font-semibold">
-                No applications yet
-              </h2>
-
-              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                Once you submit an instrument for verification, your
-                application will appear here.
-              </p>
-
-              <Link
-                href="/business/instruments"
-                className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold hover:bg-blue-500"
-              >
-                View Instruments →
-              </Link>
+              <SummaryCard
+                label="Verified"
+                value={String(
+                  applications.filter(
+                    (application) =>
+                      application.status === "Verified"
+                  ).length
+                )}
+              />
 
             </div>
 
-          ) : (
+            {/* =================================================
+                APPLICATION LIST
+            ================================================= */}
 
-            applications.map((application) => (
+            <div className="space-y-4">
 
-              <ApplicationCard
-                key={application.id}
-                application={application}
-              />
+              {applications.length === 0 ? (
 
-            ))
+                <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-16 text-center">
 
-          )}
+                  <div className="text-4xl">
+                    ◉
+                  </div>
 
-        </div>
+                  <h2 className="mt-4 text-xl font-semibold">
+                    No applications yet
+                  </h2>
+
+                  <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+                    Once you submit an instrument for
+                    verification, your application will
+                    appear here.
+                  </p>
+
+                  <Link
+                    href="/business/instruments"
+                    className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold hover:bg-blue-500"
+                  >
+                    View Instruments →
+                  </Link>
+
+                </div>
+
+              ) : (
+
+                applications.map((application) => (
+
+                  <ApplicationCard
+                    key={application.id}
+                    application={application}
+                  />
+
+                ))
+
+              )}
+
+            </div>
+
+          </>
+
+        )}
 
       </section>
 
@@ -185,7 +271,9 @@ export default function ApplicationsPage() {
 }
 
 
-/* SUMMARY CARD */
+/* =========================================================
+   SUMMARY CARD
+========================================================= */
 
 function SummaryCard({
   label,
@@ -213,7 +301,9 @@ function SummaryCard({
 }
 
 
-/* APPLICATION CARD */
+/* =========================================================
+   APPLICATION CARD
+========================================================= */
 
 function ApplicationCard({
   application,
@@ -230,29 +320,30 @@ function ApplicationCard({
           ? "bg-blue-400/10 text-blue-300"
           : "bg-amber-400/10 text-amber-300";
 
-
   return (
 
     <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl transition hover:border-blue-400/20">
 
       <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
 
-
-        {/* LEFT */}
+        {/* =================================================
+            LEFT SIDE
+        ================================================= */}
 
         <div className="flex gap-5">
 
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-blue-400/10 bg-blue-400/[0.06] text-xl">
-            ◫
+            ◉
           </div>
 
-
           <div>
+
+            {/* APPLICATION NAME + STATUS */}
 
             <div className="flex flex-wrap items-center gap-3">
 
               <h2 className="font-semibold">
-                {application.instrumentName}
+                {application.instrument}
               </h2>
 
               <span
@@ -263,11 +354,13 @@ function ApplicationCard({
 
             </div>
 
+            {/* TYPE */}
 
             <div className="mt-2 text-sm text-slate-500">
               {application.type}
             </div>
 
+            {/* DETAILS */}
 
             <div className="mt-3 flex flex-wrap gap-5 text-xs text-slate-600">
 
@@ -283,22 +376,28 @@ function ApplicationCard({
                 Submitted {application.submitted}
               </span>
 
+              <span>
+                Priority: {application.priority}
+              </span>
+
             </div>
 
           </div>
 
         </div>
 
+        {/* =================================================
+            STATUS
+        ================================================= */}
 
-        {/* STATUS */}
-
-        <div className="min-w-[160px] lg:text-right">
+        <div className="min-w-[180px] lg:text-right">
 
           <div className="text-[10px] uppercase tracking-wider text-slate-600">
             Application Status
           </div>
 
           <div className="mt-2 text-sm font-semibold">
+
             {application.status === "Verified"
               ? "✓ Verification Complete"
               : application.status === "Under Review"
@@ -306,6 +405,7 @@ function ApplicationCard({
                 : application.status === "Rejected"
                   ? "Application Rejected"
                   : "Awaiting Officer Assignment"}
+
           </div>
 
         </div>

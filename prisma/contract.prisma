@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Instrument {
+  id              String        @id
+  name            String
+  manufacturer    String
+  model           String
+  serialNumber    String        @unique
+  location        String
+  status          String
+  lastVerified    String
+  nextVerification String
+
+  applications    Application[]
+}
+
+model Application {
+  id          String       @id
+  business    String
+  instrument  String
+  type        String
+  location    String
+  submitted   String
+  priority    String
+  status      String
+
+  instrumentId String?
+  instrumentRef Instrument? @relation(fields: [instrumentId], references: [id])
+
+  certificate Certificate?
+}
+
+model Certificate {
+  id             String      @id
+  applicationId  String      @unique
+  business       String
+  instrument     String
+  issuedDate     String
+  validUntil     String
+  status         String
+  qrCode         String
+
+  application Application @relation(fields: [applicationId], references: [id])
+}

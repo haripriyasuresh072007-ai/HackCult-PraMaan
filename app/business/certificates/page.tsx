@@ -20,7 +20,9 @@ export default function CertificatesPage() {
   return (
     <main className="min-h-screen bg-[#030712] text-white">
 
-      {/* BACKGROUND */}
+      {/* =========================================================
+          BACKGROUND
+      ========================================================= */}
 
       <div className="fixed inset-0 -z-0 overflow-hidden">
 
@@ -40,7 +42,9 @@ export default function CertificatesPage() {
       </div>
 
 
-      {/* NAVBAR */}
+      {/* =========================================================
+          NAVBAR
+      ========================================================= */}
 
       <nav className="relative z-10 flex items-center justify-between border-b border-white/10 bg-[#030712]/80 px-6 py-4 backdrop-blur-xl lg:px-10">
 
@@ -78,7 +82,9 @@ export default function CertificatesPage() {
       </nav>
 
 
-      {/* CONTENT */}
+      {/* =========================================================
+          CONTENT
+      ========================================================= */}
 
       <section className="relative z-10 mx-auto max-w-7xl px-6 py-10 lg:px-10">
 
@@ -100,7 +106,9 @@ export default function CertificatesPage() {
         </div>
 
 
-        {/* CERTIFICATE LIST */}
+        {/* =========================================================
+            CERTIFICATE LIST
+        ========================================================= */}
 
         <div className="grid gap-5">
 
@@ -142,7 +150,9 @@ export default function CertificatesPage() {
       </section>
 
 
-      {/* CERTIFICATE MODAL */}
+      {/* =========================================================
+          CERTIFICATE MODAL
+      ========================================================= */}
 
       {selected && (
 
@@ -214,7 +224,7 @@ function CertificateCard({
               </span>
 
               <span>
-                Instrument ID {certificate.instrumentId}
+                Instrument ID {certificate.instrumentId ?? "Not available"}
               </span>
 
             </div>
@@ -255,18 +265,10 @@ function CertificateModal({
 
   useEffect(() => {
 
-    /*
-      Create the public verification URL.
-
-      Example:
-
-      http://localhost:3000/verify?id=CERT-001
-    */
-
     const verificationUrl =
-      `${window.location.origin}/verify?id=${encodeURIComponent(
-        certificate.id
-      )}`;
+  `http://192.168.1.7:3000/verify?id=${encodeURIComponent(
+    certificate.id
+  )}`;
 
     QRCode.toDataURL(
       verificationUrl,
@@ -286,6 +288,12 @@ function CertificateModal({
   }, [certificate]);
 
 
+  const instrumentId =
+    certificate.instrumentId ??
+    certificate.instrument ??
+    "Not available";
+
+
   return (
 
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/80 p-5 backdrop-blur-md">
@@ -293,7 +301,9 @@ function CertificateModal({
       <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-[#07101f] shadow-2xl">
 
 
-        {/* HEADER */}
+        {/* =====================================================
+            HEADER
+        ===================================================== */}
 
         <div className="flex items-center justify-between border-b border-white/10 p-6">
 
@@ -320,7 +330,9 @@ function CertificateModal({
         </div>
 
 
-        {/* CERTIFICATE */}
+        {/* =====================================================
+            CERTIFICATE
+        ===================================================== */}
 
         <div className="p-6 md:p-10">
 
@@ -380,22 +392,22 @@ function CertificateModal({
 
               <CertificateDetail
                 label="Instrument"
-                value={certificate.instrumentName}
+                value={certificate.instrumentName ?? "Not available"}
               />
 
               <CertificateDetail
                 label="Instrument ID"
-                value={certificate.instrumentId}
+                value={instrumentId}
               />
 
               <CertificateDetail
                 label="Date of Verification"
-                value={certificate.issuedDate}
+                value={certificate.issuedDate ?? "Not available"}
               />
 
               <CertificateDetail
                 label="Valid Until"
-                value={certificate.validUntil}
+                value={certificate.validUntil ?? "Not available"}
               />
 
             </div>
@@ -497,7 +509,7 @@ function CertificateModal({
 
 
 /* =========================================================
-   DETAIL
+   DETAIL COMPONENT
 ========================================================= */
 
 function CertificateDetail({
@@ -523,5 +535,4 @@ function CertificateDetail({
     </div>
 
   );
-
 }

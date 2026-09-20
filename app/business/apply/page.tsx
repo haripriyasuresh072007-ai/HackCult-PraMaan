@@ -4,124 +4,154 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-import {
-  addApplication,
-  getInstruments,
-  Instrument,
-} from "@/app/lib/businessStore";
-
-
-/* =========================================================
-   PAGE WRAPPER
-   Suspense is required because ApplyForm uses useSearchParams()
-========================================================= */
-
-export default function ApplyPage() {
-  return (
-    <Suspense
-      fallback={
-        <main className="flex min-h-screen items-center justify-center bg-[#030712] text-white">
-          <div className="text-center">
-            <div className="text-3xl animate-pulse">
-              ⚖
-            </div>
-
-            <p className="mt-4 text-sm text-slate-500">
-              Loading verification form...
-            </p>
-          </div>
-        </main>
-      }
-    >
-      <ApplyForm />
-    </Suspense>
-  );
-}
-
-
-/* =========================================================
-   APPLICATION FORM
-========================================================= */
+type Instrument = {
+  id: string;
+  name: string;
+  manufacturer: string;
+  model: string;
+  serialNumber: string;
+  location: string;
+  type: string;
+  capacity: string;
+  validUntil: string;
+  status: string;
+  lastVerified: string;
+  nextVerification: string;
+};
 
 function ApplyForm() {
-
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const instrumentId = searchParams.get("instrument");
 
-  const [instrument, setInstrument] =
-    useState<Instrument | null>(null);
+  const [instrument, setInstrument] = useState<Instrument | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [type, setType] = useState<
     "Original Verification" | "Re-verification"
   >("Re-verification");
 
   const [location, setLocation] = useState("");
+  const [preferredDate, setPreferredDate] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const [preferredDate, setPreferredDate] =
-    useState("");
-
-
-  /* =======================================================
-     LOAD SELECTED INSTRUMENT
-  ======================================================= */
+  /* =========================================================
+     LOAD SELECTED INSTRUMENT FROM DATABASE
+  ========================================================= */
 
   useEffect(() => {
-
-    const instruments = getInstruments();
-
-    const selected = instruments.find(
-      (item) => item.id === instrumentId
-    );
-
-    if (selected) {
-
-      setInstrument(selected);
-
-      setLocation(selected.location);
-
-    }
-
-  }, [instrumentId]);
-
-
-  /* =======================================================
-     SUBMIT APPLICATION
-  ======================================================= */
-
-  const submitApplication = () => {
-
-    if (!instrument || !preferredDate || !location) {
+    if (!instrumentId) {
+      setLoading(false);
       return;
     }
 
-    addApplication({
-      instrumentId: instrument.id,
-      instrumentName: instrument.name,
-      type,
-      location,
-    });
+    const loadInstrument = async () => {
+      try {
+        const response = await fetch("/api/instruments");
 
-    router.push("/business/applications");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          console.error("Unable to load instruments");
+          return;
+        }
+
+        const selected = data.instruments.find(
+          (item: Instrument) => item.id === instrumentId
+        );
+
+        if (selected) {
+          setInstrument(selected);
+          setLocation(selected.location);
+        }
+      } catch (error) {
+        console.error("Failed to load instrument:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInstrument();
+  }, [instrumentId]);
+
+  /* =========================================================
+     SUBMIT APPLICATION TO DATABASE
+  ========================================================= */
+
+  const submitApplication = async () => {
+    if (!instrument || !preferredDate || !location || submitting) {
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          business: "Current Business",
+          instrument: instrument.name,
+          instrumentId: instrument.id,
+          type,
+          location,
+          submitted: new Date().toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          priority: "Normal",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Unable to submit application.");
+        return;
+      }
+
+      alert("Application submitted successfully.");
+
+      router.push("/business/applications");
+    } catch (error) {
+      console.error("APPLICATION SUBMIT ERROR:", error);
+      alert("Unable to submit application. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  /* =========================================================
+     LOADING
+  ========================================================= */
 
-  /* =======================================================
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#030712] text-white">
+        <div className="text-center">
+          <div className="text-3xl animate-pulse">⚖</div>
+
+          <p className="mt-4 text-sm text-slate-500">
+            Loading verification form...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  /* =========================================================
      INSTRUMENT NOT FOUND
-  ======================================================= */
+  ========================================================= */
 
   if (!instrument) {
-
     return (
-
       <main className="flex min-h-screen items-center justify-center bg-[#030712] text-white">
-
         <div className="text-center">
-
-          <div className="text-4xl">
-            ⚠
-          </div>
+          <div className="text-4xl">⚠</div>
 
           <h1 className="mt-4 text-xl font-semibold">
             Instrument not found
@@ -138,27 +168,19 @@ function ApplyForm() {
           >
             ← Return to Instruments
           </Link>
-
         </div>
-
       </main>
-
     );
   }
 
-
-  /* =======================================================
+  /* =========================================================
      MAIN PAGE
-  ======================================================= */
+  ========================================================= */
 
   return (
-
     <main className="min-h-screen bg-[#030712] text-white">
 
-
-      {/* =================================================
-          NAVIGATION
-      ================================================= */}
+      {/* NAVIGATION */}
 
       <nav className="border-b border-white/10 bg-[#030712]/80 px-6 py-4 backdrop-blur-xl lg:px-10">
 
@@ -168,13 +190,11 @@ function ApplyForm() {
             href="/business"
             className="flex items-center gap-3"
           >
-
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-blue-400/30 bg-blue-500/10 text-xl">
               ⚖
             </div>
 
             <div>
-
               <div className="text-sm font-bold tracking-[0.25em]">
                 LEGAL METROLOGY
               </div>
@@ -182,11 +202,8 @@ function ApplyForm() {
               <div className="text-xs text-slate-500">
                 Verification Portal
               </div>
-
             </div>
-
           </Link>
-
 
           <Link
             href="/business/instruments"
@@ -199,14 +216,11 @@ function ApplyForm() {
 
       </nav>
 
-
-      {/* =================================================
-          FORM SECTION
-      ================================================= */}
+      {/* FORM */}
 
       <section className="mx-auto max-w-4xl px-6 py-12">
 
-        {/* PAGE HEADER */}
+        {/* HEADER */}
 
         <div className="mb-8">
 
@@ -219,23 +233,16 @@ function ApplyForm() {
           </h1>
 
           <p className="mt-3 text-slate-500">
-            Submit this instrument for Legal Metrology
-            verification.
+            Submit this instrument for Legal Metrology verification.
           </p>
 
         </div>
 
-
-        {/* =================================================
-            FORM CARD
-        ================================================= */}
+        {/* CARD */}
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl md:p-8">
 
-
-          {/* =================================================
-              SELECTED INSTRUMENT
-          ================================================= */}
+          {/* SELECTED INSTRUMENT */}
 
           <div className="rounded-2xl border border-blue-400/10 bg-blue-400/[0.04] p-5">
 
@@ -269,10 +276,7 @@ function ApplyForm() {
 
           </div>
 
-
-          {/* =================================================
-              VERIFICATION TYPE
-          ================================================= */}
+          {/* VERIFICATION TYPE */}
 
           <div className="mt-7">
 
@@ -281,9 +285,6 @@ function ApplyForm() {
             </label>
 
             <div className="grid gap-3 md:grid-cols-2">
-
-
-              {/* ORIGINAL */}
 
               <button
                 type="button"
@@ -296,7 +297,6 @@ function ApplyForm() {
                     : "border-white/10 bg-white/[0.02] hover:border-white/20"
                 }`}
               >
-
                 <div className="flex items-center justify-between">
 
                   <div className="font-semibold">
@@ -318,9 +318,6 @@ function ApplyForm() {
 
               </button>
 
-
-              {/* RE-VERIFICATION */}
-
               <button
                 type="button"
                 onClick={() =>
@@ -332,7 +329,6 @@ function ApplyForm() {
                     : "border-white/10 bg-white/[0.02] hover:border-white/20"
                 }`}
               >
-
                 <div className="flex items-center justify-between">
 
                   <div className="font-semibold">
@@ -357,10 +353,7 @@ function ApplyForm() {
 
           </div>
 
-
-          {/* =================================================
-              LOCATION
-          ================================================= */}
+          {/* LOCATION */}
 
           <div className="mt-7">
 
@@ -379,10 +372,7 @@ function ApplyForm() {
 
           </div>
 
-
-          {/* =================================================
-              DATE
-          ================================================= */}
+          {/* DATE */}
 
           <div className="mt-7">
 
@@ -402,17 +392,14 @@ function ApplyForm() {
 
           </div>
 
-
-          {/* =================================================
-              DECLARATION
-          ================================================= */}
+          {/* DECLARATION */}
 
           <div className="mt-7 rounded-2xl border border-white/5 bg-white/[0.025] p-4">
 
             <div className="flex gap-3">
 
               <div className="text-blue-300">
-                ◈
+                ◉
               </div>
 
               <p className="text-xs leading-5 text-slate-500">
@@ -426,10 +413,7 @@ function ApplyForm() {
 
           </div>
 
-
-          {/* =================================================
-              APPLICATION SUMMARY
-          ================================================= */}
+          {/* SUMMARY */}
 
           <div className="mt-7 rounded-2xl border border-white/5 bg-black/20 p-5">
 
@@ -440,7 +424,6 @@ function ApplyForm() {
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
 
               <div>
-
                 <div className="text-[10px] text-slate-600">
                   Instrument
                 </div>
@@ -448,12 +431,9 @@ function ApplyForm() {
                 <div className="mt-1 text-xs text-slate-300">
                   {instrument.name}
                 </div>
-
               </div>
 
-
               <div>
-
                 <div className="text-[10px] text-slate-600">
                   Type
                 </div>
@@ -461,12 +441,9 @@ function ApplyForm() {
                 <div className="mt-1 text-xs text-slate-300">
                   {type}
                 </div>
-
               </div>
 
-
               <div>
-
                 <div className="text-[10px] text-slate-600">
                   Inspection Date
                 </div>
@@ -474,17 +451,13 @@ function ApplyForm() {
                 <div className="mt-1 text-xs text-slate-300">
                   {preferredDate || "Not selected"}
                 </div>
-
               </div>
 
             </div>
 
           </div>
 
-
-          {/* =================================================
-              ACTION BUTTONS
-          ================================================= */}
+          {/* ACTIONS */}
 
           <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 
@@ -495,14 +468,15 @@ function ApplyForm() {
               Cancel
             </Link>
 
-
             <button
               type="button"
               onClick={submitApplication}
-              disabled={!preferredDate || !location}
+              disabled={!preferredDate || !location || submitting}
               className="rounded-xl bg-blue-600 px-7 py-3.5 text-sm font-semibold shadow-[0_10px_35px_rgba(37,99,235,0.2)] transition hover:bg-blue-500 hover:shadow-[0_15px_45px_rgba(37,99,235,0.3)] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Submit Application →
+              {submitting
+                ? "Submitting..."
+                : "Submit Application →"}
             </button>
 
           </div>
@@ -512,6 +486,31 @@ function ApplyForm() {
       </section>
 
     </main>
+  );
+}
 
+/* =========================================================
+   PAGE WRAPPER
+========================================================= */
+
+export default function ApplyPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-[#030712] text-white">
+          <div className="text-center">
+            <div className="text-3xl animate-pulse">
+              ⚖
+            </div>
+
+            <p className="mt-4 text-sm text-slate-500">
+              Loading verification form...
+            </p>
+          </div>
+        </main>
+      }
+    >
+      <ApplyForm />
+    </Suspense>
   );
 }

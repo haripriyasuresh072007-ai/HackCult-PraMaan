@@ -3,12 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  getInstruments,
-  getApplications,
-  getCertificates,
-  Instrument,
   Application,
   Certificate,
+  Instrument,
 } from "@/app/lib/businessStore";
 
 export default function BusinessDashboard() {
@@ -17,10 +14,45 @@ export default function BusinessDashboard() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
 
   useEffect(() => {
-    setInstruments(getInstruments());
-    setApplications(getApplications());
-    setCertificates(getCertificates());
-  }, []);
+  const loadDashboard = async () => {
+    try {
+      const session = localStorage.getItem("legal-metrology-session");
+
+      if (!session) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const user = JSON.parse(session);
+
+      if (!user.businessId) {
+        console.error("No business ID found in session.");
+        return;
+      }
+
+      const response = await fetch(
+        `/api/business/dashboard?businessId=${encodeURIComponent(
+          user.businessId
+        )}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error(data.message || "Failed to load dashboard.");
+        return;
+      }
+
+      setInstruments(data.instruments || []);
+      setApplications(data.applications || []);
+      setCertificates(data.certificates || []);
+    } catch (error) {
+      console.error("Dashboard loading error:", error);
+    }
+  };
+
+  loadDashboard();
+}, []);
 
   const pendingApplications = applications.filter(
     (application) =>

@@ -1,330 +1,533 @@
+"use client";
+
+/* =========================================================
+   TYPES
+========================================================= */
+
 export type Instrument = {
   id: string;
   name: string;
-  type: string;
   manufacturer: string;
   model: string;
   serialNumber: string;
-  capacity: string;
   location: string;
-  lastVerified: string;
+
+  // Fields used by the business UI
+  type: string;
+  capacity: string;
   validUntil: string;
-  status: "Verified" | "Expiring Soon" | "Pending";
+
+  status: "Active" | "Pending" | "Expired" | "Verified" | "Expiring Soon";
+  lastVerified: string;
+  nextVerification: string;
 };
 
 export type Application = {
   id: string;
-  instrumentId: string;
+  business: string;
+
+  // Keep both names because different pages use different names
+  instrument: string;
   instrumentName: string;
-  type: "Original Verification" | "Re-verification";
+  instrumentId?: string;
+
+  type: string;
   location: string;
   submitted: string;
+  priority: "Normal" | "High";
+
   status: "Pending" | "Under Review" | "Verified" | "Rejected";
 };
 
 export type Certificate = {
   id: string;
-  certificateNumber: string;
+  applicationId: string;
+
+  business: string;
+
+  // Names used by different pages
+  instrument: string;
   instrumentName: string;
-  instrumentId: string;
+  instrumentId?: string;
+
+  certificateNumber: string;
+
   issuedDate: string;
   validUntil: string;
   status: "Valid" | "Expired";
+  qrCode: string;
 };
 
 
 /* =========================================================
-   DEFAULT DEMO INSTRUMENTS
+   DEFAULT DATA
 ========================================================= */
 
 const DEFAULT_INSTRUMENTS: Instrument[] = [
   {
-    id: "LM-00124",
+    id: "INS-001",
     name: "Digital Weighing Scale",
-    type: "Electronic Weighing Instrument",
-    manufacturer: "Apex Instruments",
-    model: "APX-500",
-    serialNumber: "APX500-2026-0194",
-    capacity: "500 kg",
+    manufacturer: "Essae",
+    model: "DS-30",
+    serialNumber: "ES-DS30-2026-001",
     location: "Chennai Branch",
-    lastVerified: "27 Aug 2026",
-    validUntil: "27 Aug 2027",
-    status: "Verified",
-  },
 
-  {
-    id: "LM-00118",
-    name: "Platform Weighing Machine",
-    type: "Industrial Weighing Instrument",
-    manufacturer: "Precision Tech",
-    model: "PT-1000",
-    serialNumber: "PT1000-2026-0081",
-    capacity: "1000 kg",
-    location: "Warehouse A",
-    lastVerified: "14 Jul 2026",
-    validUntil: "14 Jul 2027",
-    status: "Verified",
-  },
-
-  {
-    id: "LM-00131",
-    name: "Retail Counter Scale",
-    type: "Commercial Weighing Instrument",
-    manufacturer: "WeighMaster",
-    model: "WM-30",
-    serialNumber: "WM30-2025-0441",
+    type: "Electronic Weighing Instrument",
     capacity: "30 kg",
-    location: "Main Store",
-    lastVerified: "02 Sep 2025",
-    validUntil: "02 Sep 2026",
-    status: "Expiring Soon",
+    validUntil: "15 Aug 2027",
+
+    status: "Active",
+    lastVerified: "15 Aug 2026",
+    nextVerification: "15 Aug 2027",
+  },
+
+  {
+    id: "INS-002",
+    name: "Platform Weighing Machine",
+    manufacturer: "Avery",
+    model: "PWI-500",
+    serialNumber: "AV-PWI-2026-014",
+    location: "Ambattur Warehouse",
+
+    type: "Platform Weighing Instrument",
+    capacity: "500 kg",
+    validUntil: "10 Jul 2027",
+
+    status: "Pending",
+    lastVerified: "10 Jul 2026",
+    nextVerification: "10 Jul 2027",
+  },
+
+  {
+    id: "INS-003",
+    name: "Electronic Retail Scale",
+    manufacturer: "Mettler Toledo",
+    model: "Retail-20",
+    serialNumber: "MT-R20-2026-078",
+    location: "Anna Nagar",
+
+    type: "Electronic Retail Instrument",
+    capacity: "20 kg",
+    validUntil: "20 Aug 2027",
+
+    status: "Active",
+    lastVerified: "20 Aug 2026",
+    nextVerification: "20 Aug 2027",
   },
 ];
 
-
-/* =========================================================
-   DEFAULT DEMO APPLICATIONS
-========================================================= */
 
 const DEFAULT_APPLICATIONS: Application[] = [
   {
-    id: "APP-2026-0142",
-    instrumentId: "LM-00124",
+    id: "APP-2026-0151",
+    business: "JK Enterprises",
+
+    instrument: "Digital Weighing Scale",
     instrumentName: "Digital Weighing Scale",
+    instrumentId: "INS-001",
+
     type: "Original Verification",
     location: "Chennai Branch",
-    submitted: "27 Aug 2026",
-    status: "Verified",
+    submitted: "28 Aug 2026",
+    priority: "Normal",
+    status: "Pending",
   },
 
   {
-    id: "APP-2026-0138",
-    instrumentId: "LM-00118",
+    id: "APP-2026-0148",
+    business: "Sri Lakshmi Traders",
+
+    instrument: "Platform Weighing Machine",
     instrumentName: "Platform Weighing Machine",
+    instrumentId: "INS-002",
+
     type: "Re-verification",
-    location: "Warehouse A",
+    location: "Ambattur Warehouse",
+    submitted: "27 Aug 2026",
+    priority: "High",
+    status: "Pending",
+  },
+
+  {
+    id: "APP-2026-0143",
+    business: "Metro Supermarket",
+
+    instrument: "Electronic Retail Scale",
+    instrumentName: "Electronic Retail Scale",
+    instrumentId: "INS-003",
+
+    type: "Re-verification",
+    location: "Anna Nagar",
     submitted: "26 Aug 2026",
-    status: "Under Review",
+    priority: "Normal",
+    status: "Pending",
   },
 ];
 
-
-/* =========================================================
-   DEFAULT DEMO CERTIFICATES
-========================================================= */
 
 const DEFAULT_CERTIFICATES: Certificate[] = [
   {
     id: "CERT-001",
-    certificateNumber: "LM/CHN/2026/008421",
+    applicationId: "APP-2026-0140",
+
+    business: "ABC Traders",
+
+    instrument: "Digital Weighing Scale",
     instrumentName: "Digital Weighing Scale",
-    instrumentId: "LM-00124",
-    issuedDate: "27 Aug 2026",
-    validUntil: "27 Aug 2027",
+    instrumentId: "INS-001",
+
+    certificateNumber: "CERT-001",
+
+    issuedDate: "20 Aug 2026",
+    validUntil: "20 Aug 2027",
     status: "Valid",
+    qrCode: "CERT-001",
   },
 ];
 
 
 /* =========================================================
-   LOCAL STORAGE HELPERS
+   LOCAL STORAGE KEYS
 ========================================================= */
 
-function readData<T>(key: string, fallback: T): T {
+const INSTRUMENTS_KEY = "legal-metrology-instruments";
+const APPLICATIONS_KEY = "legal-metrology-applications";
+const CERTIFICATES_KEY = "legal-metrology-certificates";
 
-  if (typeof window === "undefined") {
-    return fallback;
-  }
 
-  const saved = localStorage.getItem(key);
+/* =========================================================
+   STORAGE HELPERS
+========================================================= */
 
-  if (!saved) {
-
+function saveInstruments(data: Instrument[]) {
+  if (typeof window !== "undefined") {
     localStorage.setItem(
-      key,
-      JSON.stringify(fallback)
+      INSTRUMENTS_KEY,
+      JSON.stringify(data)
     );
-
-    return fallback;
-  }
-
-  try {
-
-    return JSON.parse(saved);
-
-  } catch {
-
-    localStorage.setItem(
-      key,
-      JSON.stringify(fallback)
-    );
-
-    return fallback;
   }
 }
 
 
-function saveData<T>(
-  key: string,
-  data: T
-) {
-
-  if (typeof window === "undefined") {
-    return;
+function saveApplications(data: Application[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(
+      APPLICATIONS_KEY,
+      JSON.stringify(data)
+    );
   }
+}
 
-  localStorage.setItem(
-    key,
-    JSON.stringify(data)
-  );
+
+function saveCertificates(data: Certificate[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(
+      CERTIFICATES_KEY,
+      JSON.stringify(data)
+    );
+  }
 }
 
 
 /* =========================================================
-   INSTRUMENT FUNCTIONS
+   GET INSTRUMENTS
 ========================================================= */
 
 export function getInstruments(): Instrument[] {
+  if (typeof window === "undefined") {
+    return DEFAULT_INSTRUMENTS;
+  }
 
-  return readData(
-    "lm_instruments",
-    DEFAULT_INSTRUMENTS
-  );
+  const stored = localStorage.getItem(INSTRUMENTS_KEY);
+
+  if (!stored) {
+    saveInstruments(DEFAULT_INSTRUMENTS);
+    return DEFAULT_INSTRUMENTS;
+  }
+
+  try {
+    const parsed = JSON.parse(stored) as Instrument[];
+
+    return parsed.map((instrument) => ({
+      ...instrument,
+
+      type:
+        instrument.type ??
+        "Electronic Weighing Instrument",
+
+      capacity:
+        instrument.capacity ??
+        "Not specified",
+
+      validUntil:
+        instrument.validUntil ??
+        instrument.nextVerification,
+
+    }));
+  } catch {
+    saveInstruments(DEFAULT_INSTRUMENTS);
+    return DEFAULT_INSTRUMENTS;
+  }
 }
 
 
-export function saveInstruments(
-  instruments: Instrument[]
-) {
+/* =========================================================
+   GET APPLICATIONS
+========================================================= */
 
-  saveData(
-    "lm_instruments",
-    instruments
-  );
+export function getApplications(): Application[] {
+  if (typeof window === "undefined") {
+    return DEFAULT_APPLICATIONS;
+  }
+
+  const stored = localStorage.getItem(APPLICATIONS_KEY);
+
+  if (!stored) {
+    saveApplications(DEFAULT_APPLICATIONS);
+    return DEFAULT_APPLICATIONS;
+  }
+
+  try {
+    const parsed = JSON.parse(stored) as Application[];
+
+    return parsed.map((application) => ({
+      ...application,
+
+      instrumentName:
+        application.instrumentName ??
+        application.instrument,
+
+      instrument:
+        application.instrument ??
+        application.instrumentName,
+
+      status:
+        application.status === "Under Review"
+          ? "Under Review"
+          : application.status,
+    }));
+  } catch {
+    saveApplications(DEFAULT_APPLICATIONS);
+    return DEFAULT_APPLICATIONS;
+  }
 }
 
+
+/* =========================================================
+   GET CERTIFICATES
+========================================================= */
+
+export function getCertificates(): Certificate[] {
+  if (typeof window === "undefined") {
+    return DEFAULT_CERTIFICATES;
+  }
+
+  const stored = localStorage.getItem(CERTIFICATES_KEY);
+
+  if (!stored) {
+    saveCertificates(DEFAULT_CERTIFICATES);
+    return DEFAULT_CERTIFICATES;
+  }
+
+  try {
+    const parsed = JSON.parse(stored) as Certificate[];
+
+    return parsed.map((certificate) => ({
+      ...certificate,
+
+      instrumentName:
+        certificate.instrumentName ??
+        certificate.instrument,
+
+      instrument:
+        certificate.instrument ??
+        certificate.instrumentName,
+
+      certificateNumber:
+        certificate.certificateNumber ??
+        certificate.id,
+
+      instrumentId:
+        certificate.instrumentId,
+    }));
+  } catch {
+    saveCertificates(DEFAULT_CERTIFICATES);
+    return DEFAULT_CERTIFICATES;
+  }
+}
+
+
+/* =========================================================
+   ADD INSTRUMENT
+========================================================= */
 
 export function addInstrument(
-  instrument: Omit<
-    Instrument,
-    "id" | "lastVerified" | "validUntil" | "status"
-  >
-) {
+  instrument: Omit<Instrument, "id">
+): Instrument {
 
   const instruments = getInstruments();
 
   const newInstrument: Instrument = {
-
     ...instrument,
 
-    id: `LM-${String(Date.now()).slice(-5)}`,
-
-    lastVerified: "Not verified yet",
-
-    validUntil: "Pending verification",
-
-    status: "Pending",
-
+    id: `INS-${String(
+      instruments.length + 1
+    ).padStart(3, "0")}`,
   };
 
-  saveInstruments([
+  const updated = [
     ...instruments,
     newInstrument,
-  ]);
+  ];
+
+  saveInstruments(updated);
 
   return newInstrument;
 }
 
 
 /* =========================================================
-   APPLICATION FUNCTIONS
+   ADD APPLICATION
 ========================================================= */
 
-export function getApplications(): Application[] {
-
-  return readData(
-    "lm_applications",
-    DEFAULT_APPLICATIONS
-  );
-}
-
-
-export function saveApplications(
-  applications: Application[]
-) {
-
-  saveData(
-    "lm_applications",
-    applications
-  );
-}
-
+type AddApplicationInput = Omit<
+  Application,
+  "id" | "status" | "instrumentName"
+> & {
+  instrumentName?: string;
+};
 
 export function addApplication(
-  application: Omit<
-    Application,
-    "id" | "submitted" | "status"
-  >
-) {
+  application: AddApplicationInput
+): Application {
 
-  const applications =
-    getApplications();
+  const applications = getApplications();
+
+  const newId =
+    `APP-2026-${String(
+      151 + applications.length
+    ).padStart(4, "0")}`;
 
   const newApplication: Application = {
-
     ...application,
 
-    id: `APP-2026-${String(Date.now()).slice(-4)}`,
+    instrument:
+      application.instrument ??
+      application.instrumentName,
 
-    submitted:
-      new Date().toLocaleDateString(
-        "en-GB",
-        {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }
-      ),
+    instrumentName:
+      application.instrumentName ??
+      application.instrument,
+
+    id: newId,
 
     status: "Pending",
-
   };
 
-  saveApplications([
+  const updated = [
     ...applications,
     newApplication,
-  ]);
+  ];
+
+  saveApplications(updated);
 
   return newApplication;
 }
 
 
 /* =========================================================
-   CERTIFICATE FUNCTIONS
+   ADD CERTIFICATE
 ========================================================= */
 
-export function getCertificates(): Certificate[] {
+export function addCertificate(
+  certificate: Omit<
+    Certificate,
+    "id" | "certificateNumber" | "instrumentName"
+  > & {
+    certificateNumber?: string;
+    instrumentName?: string;
+  }
+): Certificate {
 
-  return readData(
-    "lm_certificates",
-    DEFAULT_CERTIFICATES
-  );
-}
+  const certificates = getCertificates();
 
+  const newId =
+    `CERT-${String(
+      certificates.length + 1
+    ).padStart(3, "0")}`;
 
-export function saveCertificates(
-  certificates: Certificate[]
-) {
+  const newCertificate: Certificate = {
+    ...certificate,
 
-  saveData(
-    "lm_certificates",
-    certificates
-  );
+    id: newId,
+
+    certificateNumber:
+      certificate.certificateNumber ??
+      newId,
+
+    instrument:
+      certificate.instrument ??
+      certificate.instrumentName,
+
+    instrumentName:
+      certificate.instrumentName ??
+      certificate.instrument,
+  };
+
+  const updated = [
+    ...certificates,
+    newCertificate,
+  ];
+
+  saveCertificates(updated);
+
+  return newCertificate;
 }
 
 
 /* =========================================================
-   DEMO DATA LOADER
+   UPDATE APPLICATION
+========================================================= */
+
+export function updateApplication(
+  id: string,
+  updates: Partial<Application>
+): Application | null {
+
+  const applications = getApplications();
+
+  const index = applications.findIndex(
+    (application) =>
+      application.id === id
+  );
+
+  if (index === -1) {
+    return null;
+  }
+
+  applications[index] = {
+    ...applications[index],
+    ...updates,
+
+    instrument:
+      updates.instrument ??
+      updates.instrumentName ??
+      applications[index].instrument,
+
+    instrumentName:
+      updates.instrumentName ??
+      updates.instrument ??
+      applications[index].instrumentName,
+  };
+
+  saveApplications(applications);
+
+  return applications[index];
+}
+
+
+/* =========================================================
+   DEMO DATA
 ========================================================= */
 
 export function loadDemoData() {
@@ -333,56 +536,9 @@ export function loadDemoData() {
     return;
   }
 
-  const instruments =
-    localStorage.getItem("lm_instruments");
+  saveInstruments(DEFAULT_INSTRUMENTS);
 
-  const applications =
-    localStorage.getItem("lm_applications");
+  saveApplications(DEFAULT_APPLICATIONS);
 
-  const certificates =
-    localStorage.getItem("lm_certificates");
-
-
-  /*
-   Only create demo data when the browser
-   has never created the application's data.
-  */
-
-  if (!instruments) {
-
-    localStorage.setItem(
-      "lm_instruments",
-      JSON.stringify(DEFAULT_INSTRUMENTS)
-    );
-
-  }
-
-
-  if (!applications) {
-
-    localStorage.setItem(
-      "lm_applications",
-      JSON.stringify(DEFAULT_APPLICATIONS)
-    );
-
-  }
-
-
-  if (!certificates) {
-
-    localStorage.setItem(
-      "lm_certificates",
-      JSON.stringify(DEFAULT_CERTIFICATES)
-    );
-
-  }
-
-
-  /*
-   Tell dashboards that the data has changed.
-  */
-
-  window.dispatchEvent(
-    new Event("lm-data-updated")
-  );
+  saveCertificates(DEFAULT_CERTIFICATES);
 }

@@ -1,11 +1,18 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { getCertificates } from "@/app/lib/businessStore";
-import Link from "next/link";
 import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+
+import { getCertificates } from "@/app/lib/businessStore";
+
+
+/* =========================================================
+   VERIFICATION CONTENT
+========================================================= */
 
 function VerificationContent() {
+
   const searchParams = useSearchParams();
 
   const certificateId = searchParams.get("id");
@@ -22,7 +29,9 @@ function VerificationContent() {
   ========================================================= */
 
   if (!certificateId) {
+
     return (
+
       <main className="min-h-screen bg-[#030712] text-white">
 
         <div className="fixed inset-0 -z-0 overflow-hidden">
@@ -51,18 +60,22 @@ function VerificationContent() {
               ⚖
             </div>
 
+
             <div className="mt-6 text-xs font-semibold tracking-[0.25em] text-blue-400">
               CERTIFICATE VERIFICATION
             </div>
+
 
             <h1 className="mt-3 text-3xl font-bold">
               Verification Portal
             </h1>
 
+
             <p className="mt-4 text-sm leading-7 text-slate-500">
               Scan a Legal Metrology certificate QR code to verify
               its authenticity and validity.
             </p>
+
 
             <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
 
@@ -71,6 +84,7 @@ function VerificationContent() {
               </div>
 
             </div>
+
 
             <Link
               href="/business"
@@ -84,6 +98,7 @@ function VerificationContent() {
         </section>
 
       </main>
+
     );
   }
 
@@ -93,7 +108,9 @@ function VerificationContent() {
   ========================================================= */
 
   if (!certificate) {
+
     return (
+
       <main className="min-h-screen bg-[#030712] text-white">
 
         <div className="fixed inset-0 -z-0 overflow-hidden">
@@ -122,18 +139,22 @@ function VerificationContent() {
               !
             </div>
 
+
             <div className="mt-6 text-xs font-semibold tracking-[0.25em] text-red-400">
               VERIFICATION FAILED
             </div>
+
 
             <h1 className="mt-3 text-3xl font-bold">
               Certificate Not Found
             </h1>
 
+
             <p className="mt-4 text-sm leading-7 text-slate-500">
               The certificate reference does not match a registered
               certificate in the Legal Metrology verification system.
             </p>
+
 
             <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4">
 
@@ -147,6 +168,7 @@ function VerificationContent() {
 
             </div>
 
+
             <Link
               href="/business"
               className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold transition hover:bg-blue-500"
@@ -159,6 +181,7 @@ function VerificationContent() {
         </section>
 
       </main>
+
     );
   }
 
@@ -169,11 +192,19 @@ function VerificationContent() {
 
   const isValid = certificate.status === "Valid";
 
+  const instrumentId =
+    certificate.instrumentId ??
+    certificate.instrument ??
+    "Not available";
+
 
   return (
+
     <main className="min-h-screen bg-[#030712] text-white">
 
-      {/* BACKGROUND */}
+      {/* =====================================================
+          BACKGROUND
+      ===================================================== */}
 
       <div className="fixed inset-0 -z-0 overflow-hidden">
 
@@ -193,7 +224,9 @@ function VerificationContent() {
       </div>
 
 
-      {/* HEADER */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
 
       <header className="relative z-10 border-b border-white/10 bg-[#030712]/75 backdrop-blur-xl">
 
@@ -204,6 +237,7 @@ function VerificationContent() {
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-blue-400/30 bg-blue-500/10 text-xl">
               ⚖
             </div>
+
 
             <div>
 
@@ -237,7 +271,9 @@ function VerificationContent() {
       </header>
 
 
-      {/* MAIN */}
+      {/* =====================================================
+          MAIN
+      ===================================================== */}
 
       <section className="relative z-10 mx-auto max-w-4xl px-6 py-12">
 
@@ -246,17 +282,36 @@ function VerificationContent() {
 
         <div className="text-center">
 
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/20 bg-emerald-400/10 text-3xl shadow-[0_0_50px_rgba(52,211,153,0.12)]">
-            ✓
+          <div
+            className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full text-3xl ${
+              isValid
+                ? "border border-emerald-400/20 bg-emerald-400/10 shadow-[0_0_50px_rgba(52,211,153,0.12)]"
+                : "border border-red-400/20 bg-red-400/10"
+            }`}
+          >
+            {isValid ? "✓" : "!"}
           </div>
 
-          <div className="mt-6 text-xs font-semibold tracking-[0.3em] text-emerald-400">
-            CERTIFICATE VERIFIED
+
+          <div
+            className={`mt-6 text-xs font-semibold tracking-[0.3em] ${
+              isValid
+                ? "text-emerald-400"
+                : "text-red-400"
+            }`}
+          >
+            {isValid
+              ? "CERTIFICATE VERIFIED"
+              : "CERTIFICATE EXPIRED"}
           </div>
+
 
           <h1 className="mt-3 text-4xl font-bold md:text-5xl">
-            Valid Certificate
+            {isValid
+              ? "Valid Certificate"
+              : "Expired Certificate"}
           </h1>
+
 
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-500">
             This certificate matches a registered record in the
@@ -266,7 +321,9 @@ function VerificationContent() {
         </div>
 
 
-        {/* CERTIFICATE CARD */}
+        {/* =====================================================
+            CERTIFICATE CARD
+        ===================================================== */}
 
         <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] shadow-2xl backdrop-blur-xl">
 
@@ -297,53 +354,80 @@ function VerificationContent() {
 
             {/* CERTIFICATE NUMBER */}
 
-            <div className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-6 text-center">
+            <div
+              className={`rounded-2xl border p-6 text-center ${
+                isValid
+                  ? "border-emerald-400/15 bg-emerald-400/[0.035]"
+                  : "border-red-400/15 bg-red-400/[0.035]"
+              }`}
+            >
 
               <div className="text-[10px] uppercase tracking-[0.2em] text-slate-600">
                 Certificate Number
               </div>
 
-              <div className="mt-3 break-all font-mono text-xl font-bold tracking-wider text-emerald-300">
+
+              <div
+                className={`mt-3 break-all font-mono text-xl font-bold tracking-wider ${
+                  isValid
+                    ? "text-emerald-300"
+                    : "text-red-300"
+                }`}
+              >
                 {certificate.certificateNumber}
               </div>
 
-              <div className="mx-auto mt-4 flex w-fit items-center gap-2 rounded-full bg-emerald-400/10 px-4 py-2 text-[10px] font-bold tracking-wider text-emerald-300">
 
-                ✓ {isValid ? "VALID" : "EXPIRED"}
+              <div
+                className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full px-4 py-2 text-[10px] font-bold tracking-wider ${
+                  isValid
+                    ? "bg-emerald-400/10 text-emerald-300"
+                    : "bg-red-400/10 text-red-300"
+                }`}
+              >
+
+                {isValid ? "✓ VALID" : "! EXPIRED"}
 
               </div>
 
             </div>
 
 
-            {/* DETAILS */}
+            {/* =================================================
+                DETAILS
+            ================================================= */}
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
 
               <Detail
                 label="Instrument"
-                value={certificate.instrumentName}
+                value={certificate.instrumentName ?? "Not available"}
               />
+
 
               <Detail
                 label="Instrument ID"
-                value={certificate.instrumentId}
+                value={instrumentId}
               />
+
 
               <Detail
                 label="Verification Date"
-                value={certificate.issuedDate}
+                value={certificate.issuedDate ?? "Not available"}
               />
+
 
               <Detail
                 label="Valid Until"
-                value={certificate.validUntil}
+                value={certificate.validUntil ?? "Not available"}
               />
 
             </div>
 
 
-            {/* AUTHENTICITY */}
+            {/* =================================================
+                AUTHENTICITY
+            ================================================= */}
 
             <div className="mt-6 rounded-2xl border border-blue-400/10 bg-blue-400/[0.025] p-5">
 
@@ -352,6 +436,7 @@ function VerificationContent() {
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-400/10">
                   ✓
                 </div>
+
 
                 <div>
 
@@ -373,7 +458,9 @@ function VerificationContent() {
           </div>
 
 
-          {/* FOOTER */}
+          {/* =====================================================
+              FOOTER
+          ===================================================== */}
 
           <div className="border-t border-white/10 bg-black/10 px-6 py-5 text-center text-[10px] leading-5 text-slate-600">
             Digital Verification • Secure • Trackable
@@ -404,7 +491,9 @@ function Detail({
   label: string;
   value: string;
 }) {
+
   return (
+
     <div className="rounded-2xl border border-white/5 bg-white/[0.025] p-5">
 
       <div className="text-[10px] uppercase tracking-wider text-slate-600">
@@ -416,6 +505,7 @@ function Detail({
       </div>
 
     </div>
+
   );
 }
 
@@ -425,17 +515,26 @@ function Detail({
 ========================================================= */
 
 export default function VerifyPage() {
+
   return (
+
     <Suspense
       fallback={
+
         <main className="flex min-h-screen items-center justify-center bg-[#030712] text-white">
+
           <div className="text-sm text-slate-500">
             Verifying certificate...
           </div>
+
         </main>
+
       }
     >
+
       <VerificationContent />
+
     </Suspense>
+
   );
 }
